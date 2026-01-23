@@ -71,7 +71,7 @@ export default function HeroBanner() {
                 ? 'w-10 bg-red-600 shadow-[0_0_15px_rgba(220,38,38,0.5)]'
                 : 'w-2 bg-zinc-500 hover:bg-zinc-400'
             }`}
-            aria-label={`Go to slide ${i + 1}`}
+           
           />
         ))}
       </div>

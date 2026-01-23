@@ -3,6 +3,7 @@ import {
   fetchAllMovies,
   fetchMovieVideos,
   fetchPopularMovies,
+  fetchSearchMovies,
   fetchTopRatedMovies,
   fetchTrendingMovies,
   fetchUpcomingMovies,
@@ -15,6 +16,7 @@ const initialState = {
     topRated: { page: null, data: [], total_pages: null, total_results: null },
     trending: { page: null, data: [], total_pages: null, total_results: null },
     upcoming: { page: null, data: [], total_pages: null, total_results: null },
+    search: { page: null, data: [], total_pages: null, total_results: null },
   },
   videos: {
     byMovieId: {},
@@ -110,6 +112,24 @@ const MovieSlice = createSlice({
         state.data.upcoming.total_results = action.payload.total_results;
       })
       .addCase(fetchUpcomingMovies.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || action.error.message;
+      })
+
+      //search
+      .addCase(fetchSearchMovies.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.data.search.data = [];
+      })
+      .addCase(fetchSearchMovies.fulfilled, (state, action) => {
+        state.loading = false;
+        state.data.search.data = action.payload.data;
+        state.data.search.page = action.payload.page;
+        state.data.search.total_pages = action.payload.total_pages;
+        state.data.search.total_results = action.payload.total_results;
+      })
+      .addCase(fetchSearchMovies.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || action.error.message;
       })

@@ -26,6 +26,17 @@ export const api = {
     const response = await customAxios.get(`/movie/upcoming?page=${page}`);
     return response.data;
   },
+  fetchSearchMovies: async ({ page, value }) => {
+    if (!value) return;
+    const response = await customAxios.get(`/search/movie`, {
+      params: {
+        page: page,
+        query: value,
+        include_adult: false,
+      },
+    });
+    return response.data;
+  },
 
   GetVidioMovies: async (movieId) => {
     const response = await customAxios.get(`/movie/${movieId}/videos`);

@@ -3,6 +3,7 @@ import {
   fetchAllMovies,
   fetchMovieVideos,
   fetchPopularMovies,
+  fetchSearchMovies,
   fetchTopRatedMovies,
   fetchTrendingMovies,
   fetchUpcomingMovies,
@@ -20,6 +21,8 @@ export const useMovieActions = () => {
         dispatch(fetchTrendingMovies({ time, page })),
       fetchUpcomingMovies: (page) => dispatch(fetchUpcomingMovies(page)),
       fetchMovieVideos: (movieId) => dispatch(fetchMovieVideos(movieId)),
+      fetchSearchMovies: ({ page, value }) =>
+        dispatch(fetchSearchMovies({ page, value })),
     }),
     [dispatch]
   );

@@ -59,6 +59,15 @@ export const fetchUpcomingMovies = createAsyncThunk(
   async (page, { rejectWithValue }) =>
     handleThunkRequest(() => api.fetchUpcomingMovies(page), rejectWithValue)
 );
+// upcoming
+export const fetchSearchMovies = createAsyncThunk(
+  'movies/fetchSearchMovies',
+  async ({ page, value }, { rejectWithValue }) =>
+    handleThunkRequest(
+      () => api.fetchSearchMovies({ page, value }),
+      rejectWithValue
+    )
+);
 // videos
 export const fetchMovieVideos = createAsyncThunk(
   'movies/fetchMovieVideos',
