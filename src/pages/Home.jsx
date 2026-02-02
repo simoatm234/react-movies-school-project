@@ -9,7 +9,7 @@ export default function Home() {
     <div>
       <HeroBaner />
       <Trending />
-      <Popular />
+      <Popular  />
     </div>
   );
 }

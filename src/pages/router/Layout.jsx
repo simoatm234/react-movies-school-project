@@ -16,7 +16,6 @@ export default function Layout() {
     AddWatchList,
   } = useMovieActions();
 
-  // We only track if the app has finished its very first boot-up
   const isGlobalLoading = useSelector((state) => state.movies.loading);
   const [hasInitialized, setHasInitialized] = useState(false);
 
@@ -27,10 +26,10 @@ export default function Layout() {
       // Fetch all initial data in parallel
       await Promise.all([
         fetchAllMovies(1),
-        fetchPopularMovies(1),
-        fetchTopRatedMovies(1),
+        fetchPopularMovies({ page: 1 }),
+        fetchTopRatedMovies({ page: 1 }),
         fetchTrendingMovies({ time: 'day', page: 1 }),
-        fetchUpcomingMovies(1),
+        fetchUpcomingMovies({ page: 1 }),
       ]);
 
       if (WatchList) {

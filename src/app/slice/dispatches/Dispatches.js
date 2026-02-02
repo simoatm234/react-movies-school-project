@@ -21,11 +21,14 @@ export const useMovieActions = () => {
   return useMemo(
     () => ({
       fetchAllMovies: (page) => dispatch(fetchAllMovies(page)),
-      fetchPopularMovies: (page) => dispatch(fetchPopularMovies(page)),
-      fetchTopRatedMovies: (page) => dispatch(fetchTopRatedMovies(page)),
+      fetchPopularMovies: ({ page, genreId }) =>
+        dispatch(fetchPopularMovies({ page, genreId })),
+      fetchTopRatedMovies: ({ page, genreId }) =>
+        dispatch(fetchTopRatedMovies({ page, genreId })),
       fetchTrendingMovies: ({ time = 'day', page = 1 }) =>
         dispatch(fetchTrendingMovies({ time, page })),
-      fetchUpcomingMovies: (page) => dispatch(fetchUpcomingMovies(page)),
+      fetchUpcomingMovies: ({ page, genreId }) =>
+        dispatch(fetchUpcomingMovies({ page, genreId })),
       fetchMovieVideos: (movieId) => dispatch(fetchMovieVideos(movieId)),
       fetchSearchMovies: ({ page, value }) =>
         dispatch(fetchSearchMovies({ page, value })),

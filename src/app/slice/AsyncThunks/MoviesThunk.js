@@ -38,14 +38,20 @@ export const selectMovie = createAsyncThunk(
 //popular
 export const fetchPopularMovies = createAsyncThunk(
   'movies/fetchPopularMovies',
-  async (page, { rejectWithValue }) =>
-    handleThunkRequest(() => api.fetchPopularMovies(page), rejectWithValue)
+  async ({ page = 1, genreId = null }, { rejectWithValue }) =>
+    handleThunkRequest(
+      () => api.fetchPopularMovies({ page, genreId }),
+      rejectWithValue
+    )
 );
 //top rated
 export const fetchTopRatedMovies = createAsyncThunk(
   'movies/fetchTopRatedMovies',
-  async (page, { rejectWithValue }) =>
-    handleThunkRequest(() => api.fetchTopRatedMovies(page), rejectWithValue)
+  async ({ page = 1, genreId = null } = {}, { rejectWithValue }) =>
+    handleThunkRequest(
+      () => api.fetchTopRatedMovies({ page, genreId }),
+      rejectWithValue
+    )
 );
 
 // trending by time
@@ -68,8 +74,11 @@ export const fetchTrendingMovies = createAsyncThunk(
 // upcoming
 export const fetchUpcomingMovies = createAsyncThunk(
   'movies/fetchUpcomingMovies',
-  async (page, { rejectWithValue }) =>
-    handleThunkRequest(() => api.fetchUpcomingMovies(page), rejectWithValue)
+  async ({ page, genreId }, { rejectWithValue }) =>
+    handleThunkRequest(
+      () => api.fetchUpcomingMovies({ page, genreId }),
+      rejectWithValue
+    )
 );
 // search
 export const fetchSearchMovies = createAsyncThunk(
@@ -87,7 +96,7 @@ export const fetchMovieVideos = createAsyncThunk(
     try {
       const videos = await api.GetVidioMovies(movieId);
       console.log('Processed videos:', videos);
-      return videos; 
+      return videos;
     } catch (error) {
       return rejectWithValue(error.response?.data);
     }

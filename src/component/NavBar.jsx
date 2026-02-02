@@ -1,4 +1,7 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Home,
   Film,
@@ -11,29 +14,49 @@ import {
   Moon,
   Menu,
   X,
+  Sparkles,
 } from 'lucide-react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useSelector } from 'react-redux';
 import { useMovieActions } from '../app/slice/dispatches/Dispatches';
 import SearchContainer from './SearchContainer';
+import logo from '../assets/logo.png';
 
 export default function NavBar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const mobileMenuRef = useRef(null);
-
-  // Actions & State
-  const { fetchSearchMovies } = useMovieActions();
-  const { search } = useSelector((state) => state.movies.data);
-
-  // UI Local State
   const [openMenu, setOpenMenu] = useState(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchText, setSearchText] = useState('');
-  const [isDark, setIsDark] = useState(
-    document.documentElement.classList.contains('dark')
-  );
+  const [scrolled, setScrolled] = useState(false);
+  const [isDark, setIsDark] = useState(true); // Default to true for cinematic apps
+
+  const { fetchSearchMovies } = useMovieActions();
+  const { search } = useSelector((state) => state.movies.data);
+
+  // --- Logic: Theme Persistence ---
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    const isDarkTheme = savedTheme === 'dark';
+    setIsDark(isDarkTheme);
+    if (isDarkTheme) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const newDark = !isDark;
+    setIsDark(newDark);
+    document.documentElement.classList.toggle('dark');
+    localStorage.setItem('theme', newDark ? 'dark' : 'light');
+  };
+
+  // --- Logic: Scroll Effect ---
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const navItems = [
     { id: 1, name: 'Home', icon: Home, path: '/' },
@@ -41,7 +64,7 @@ export default function NavBar() {
       id: 2,
       name: 'Movies',
       icon: Film,
-
+      path: '/movies',
       children: [
         { id: 'm1', name: 'Popular', path: '/movies/popular' },
         { id: 'm2', name: 'Top Rated', path: '/movies/top-rated' },
@@ -52,7 +75,7 @@ export default function NavBar() {
       id: 3,
       name: 'TV Shows',
       icon: Tv,
-      path: '/tv',
+
       children: [
         { id: 't1', name: 'Popular', path: '/tv/popular' },
         { id: 't2', name: 'Top Rated', path: '/tv/top-rated' },
@@ -62,102 +85,95 @@ export default function NavBar() {
     { id: 5, name: 'Watchlist', icon: Heart, path: '/watchlist' },
   ];
 
-  useEffect(() => {
-    if (!searchText.trim()) return;
-
-    const timer = setTimeout(() => {
-      fetchSearchMovies({ page: 1, value: searchText });
-    }, 400);
-
-    return () => clearTimeout(timer);
-  }, [searchText, fetchSearchMovies]);
-
-  // --- LOGIC: THEME & CLICKS ---
-  useEffect(() => {
-    const theme = localStorage.getItem('theme');
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-      setIsDark(true);
-    }
-
-    const handleClickOutside = (e) => {
-      if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target)) {
-        setIsMobileMenuOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  const handleNavigation = (path) => {
+  const go = (path) => {
     navigate(path);
     setOpenMenu(null);
     setIsMobileMenuOpen(false);
-    setSearchText('');
   };
 
-  const toggleTheme = () => {
-    const newDark = !isDark;
-    setIsDark(newDark);
-    document.documentElement.classList.toggle('dark');
-    localStorage.setItem('theme', newDark ? 'dark' : 'light');
+  const handleSearch = (e) => {
+    const value = e.target.value;
+    setSearchText(value);
+    fetchSearchMovies({ page: 1, value });
   };
 
   return (
     <>
-      <nav className="fixed top-0 left-0 w-full z-[100] bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          {/* Logo */}
-          <div
-            onClick={() => handleNavigation('/')}
-            className="font-bold text-xl cursor-pointer flex items-center gap-2"
+      <nav
+        className={`fixed top-0 left-0 w-full z-[100] transition-all duration-500 ${
+          scrolled
+            ? 'bg-white/70 dark:bg-zinc-950/70 backdrop-blur-2xl py-3 shadow-2xl border-b border-zinc-200/50 dark:border-white/5'
+            : 'bg-transparent py-6'
+        }`}
+      >
+        <div className="max-w-[1600px] mx-auto px-6 flex items-center justify-between">
+          {/* Logo Section */}
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => go('/')}
+            className="flex items-center gap-3 cursor-pointer group"
           >
-            🎬 <span className="hidden sm:inline">MovieApp</span>
-          </div>
+            <div className="relative">
+              <img
+                src={logo}
+                alt="atmMovie"
+                className="h-9 md:h-11 object-contain relative z-10"
+              />
+              <div className="absolute inset-0 bg-red-600/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+            </div>
+            <span className="hidden sm:block font-black text-2xl tracking-tighter italic uppercase dark:text-white">
+              ATM<span className="text-red-600">Movie</span>
+            </span>
+          </motion.div>
 
-          {/* Desktop Links */}
-          <ul className="hidden md:flex gap-8">
+          {/* Desktop Menu */}
+          <ul className="hidden md:flex items-center gap-1">
             {navItems.map((item) => {
+              const isOpen = openMenu === item.id;
               const active =
                 item.path === '/'
                   ? location.pathname === '/'
                   : location.pathname.startsWith(item.path);
+
               return (
                 <li
                   key={item.id}
-                  className="relative"
                   onMouseEnter={() => item.children && setOpenMenu(item.id)}
                   onMouseLeave={() => setOpenMenu(null)}
+                  className="relative px-2"
                 >
                   <button
-                    onClick={() =>
-                      !item.children && handleNavigation(item.path)
-                    }
-                    className={`flex items-center gap-2 text-sm font-bold uppercase tracking-tighter transition-colors ${active ? 'text-red-600' : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100'}`}
+                    onClick={() => !item.children && go(item.path)}
+                    className={`flex items-center gap-2 px-4 py-2 text-[11px] uppercase font-black tracking-[0.15em] transition-all rounded-xl ${
+                      active
+                        ? 'text-red-600 bg-red-600/5'
+                        : 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100'
+                    }`}
                   >
-                    <item.icon size={16} /> {item.name}
+                    <item.icon size={14} strokeWidth={3} />
+                    {item.name}
                     {item.children && (
                       <ChevronDown
                         size={12}
-                        className={`transition-transform ${openMenu === item.id ? 'rotate-180' : ''}`}
+                        className={`transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}
                       />
                     )}
                   </button>
 
                   <AnimatePresence>
-                    {item.children && openMenu === item.id && (
+                    {item.children && isOpen && (
                       <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 10 }}
-                        className="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-2xl shadow-xl p-2"
+                        initial={{ opacity: 0, y: 15, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                        className="absolute top-full left-0 mt-2 w-52 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 rounded-2xl shadow-2xl p-2 backdrop-blur-xl"
                       >
                         {item.children.map((child) => (
                           <button
                             key={child.id}
-                            onClick={() => handleNavigation(child.path)}
-                            className="w-full text-left px-4 py-2 text-xs font-bold hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+                            onClick={() => go(child.path)}
+                            className="block w-full text-left px-4 py-3 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-red-600 hover:bg-zinc-50 dark:hover:bg-white/5 rounded-xl transition-all"
                           >
                             {child.name}
                           </button>
@@ -170,40 +186,47 @@ export default function NavBar() {
             })}
           </ul>
 
-          {/* Search & Actions */}
-          <div className="flex items-center gap-4">
-            <div className="hidden lg:flex relative group">
+          {/* Action Area */}
+          <div className="flex items-center gap-3">
+            <form
+              onSubmit={(e) => e.preventDefault()}
+              className="hidden lg:flex relative group"
+            >
               <Search
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-red-600 transition-colors"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-red-600 transition-colors"
                 size={16}
               />
               <input
                 type="text"
                 value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-                placeholder="Quick search..."
-                className="pl-10 pr-4 py-2 w-64 rounded-full bg-zinc-100 dark:bg-zinc-900 border-none focus:ring-2 focus:ring-red-600/20 transition-all text-sm font-medium"
+                onChange={handleSearch}
+                placeholder="Search..."
+                className="pl-10 pr-4 py-2.5 w-40 focus:w-72 transition-all duration-500 rounded-2xl text-xs font-bold bg-zinc-100 dark:bg-white/5 border-none outline-none ring-1 ring-zinc-200 dark:ring-white/10 focus:ring-2 focus:ring-red-600 shadow-inner"
               />
-            </div>
+            </form>
 
             <button
               onClick={toggleTheme}
-              className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full transition-colors"
+              className="p-3 rounded-2xl bg-zinc-100 dark:bg-white/5 text-zinc-500 hover:text-red-600 dark:text-zinc-400 dark:hover:text-red-500 transition-all border border-transparent hover:border-red-600/20"
             >
-              {isDark ? <Sun size={20} /> : <Moon size={20} />}
+              {isDark ? (
+                <Sun size={18} strokeWidth={2.5} />
+              ) : (
+                <Moon size={18} strokeWidth={2.5} />
+              )}
             </button>
 
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden p-2 text-zinc-600 dark:text-zinc-300"
+              className="md:hidden p-3 rounded-2xl bg-red-600 text-white shadow-xl shadow-red-600/40 hover:scale-105 active:scale-95 transition-all"
             >
-              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              <Menu size={20} strokeWidth={3} />
             </button>
           </div>
         </div>
       </nav>
 
-      {/* Search Overlay Container */}
+      {/* Search results overlay logic remains same */}
       {searchText.trim() !== '' && (
         <SearchContainer
           searchText={searchText}
@@ -216,56 +239,6 @@ export default function NavBar() {
           closeSearch={() => setSearchText('')}
         />
       )}
-
-      {/* Mobile Sidebar */}
-      <AnimatePresence>
-        {isMobileMenuOpen && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[110]"
-            />
-            <motion.div
-              ref={mobileMenuRef}
-              initial={{ x: '100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '100%' }}
-              className="fixed right-0 top-0 h-full w-80 bg-white dark:bg-zinc-950 z-[120] p-8 shadow-2xl"
-            >
-              <div className="space-y-8 mt-10">
-                {navItems.map((item) => (
-                  <div key={item.id}>
-                    <button
-                      onClick={() =>
-                        !item.children && handleNavigation(item.path)
-                      }
-                      className="flex items-center gap-4 text-xl font-black italic uppercase text-zinc-900 dark:text-white"
-                    >
-                      <item.icon className="text-red-600" /> {item.name}
-                    </button>
-                    {item.children && (
-                      <div className="ml-10 mt-4 space-y-4 border-l-2 border-zinc-100 dark:border-zinc-800 pl-4">
-                        {item.children.map((child) => (
-                          <button
-                            key={child.id}
-                            onClick={() => handleNavigation(child.path)}
-                            className="block text-sm font-bold text-zinc-500 hover:text-red-600"
-                          >
-                            {child.name}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
     </>
   );
 }

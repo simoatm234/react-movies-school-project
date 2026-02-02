@@ -16,7 +16,7 @@ export default function SearchContainer({
 
   const onMovieSelect = (id) => {
     navigate(`/movie/${id}`);
-    closeSearch();
+    closeSearch(); // Closes the search UI immediately
   };
 
   return (
