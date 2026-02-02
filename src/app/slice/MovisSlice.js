@@ -29,13 +29,17 @@ const MovieSlice = createSlice({
   name: 'movies',
   initialState,
   reducers: {
-    AddWatchList: (state, action) =>
-      (state.data.watchList.data = action.payload),
-    deleteWatchListItem: (state, action) =>
-      (state.data.watchList.data = state.data.watchList.data.filter(
-        (d) => d.id !== action.payload
-      )),
-    deleteAllWacthList: (state) => (state.data.watchList.data = []),
+    AddWatchList: (state, action) => {
+      state.data.watchList.data = action.payload;
+    },
+    deleteWatchListItem: (state, action) => {
+      state.data.watchList.data = state.data.watchList.data.filter(
+        (movie) => movie.id !== action.payload
+      );
+    },
+    deleteAllWacthList: (state) => {
+      state.data.watchList.data = [];
+    },
   },
   extraReducers: (builder) => {
     builder

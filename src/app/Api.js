@@ -46,15 +46,24 @@ export const api = {
   },
 
   fetchUpcomingMovies: async ({ page = 1, genreId = null }) => {
+    const now = new Date();
+    const today = now.toISOString().split('T')[0];
+
+    const sixMonthsFromNow = new Date(now.setMonth(now.getMonth() + 6))
+      .toISOString()
+      .split('T')[0];
+
     const params = {
       page,
+      language: 'en-US',
+      with_genres: genreId,
+      sort_by: 'primary_release_date.asc',
+      'primary_release_date.gte': today,
+      'primary_release_date.lte': sixMonthsFromNow,
+      with_release_type: '2|3',
     };
-    if (genreId) {
-      params.with_genres = genreId;
-      params.sort_by = 'primary_release_date.asc';
-    }
-    const endpoint = genreId ? '/discover/movie' : '/movie/upcoming';
-    const response = await customAxios.get(endpoint, { params });
+
+    const response = await customAxios.get('/discover/movie', { params });
     return response.data;
   },
 

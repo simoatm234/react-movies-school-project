@@ -5,6 +5,7 @@ import ShowMovie from '../ShowMovie';
 import PopularMovie from '../PopularMovie';
 import TopRatedMovie from '../TopRatedMovie';
 import UpcomingMovie from '../UpcomingMovie';
+import Watchlist from '../Watchlist';
 
 export const route = createBrowserRouter([
   {
@@ -13,9 +14,10 @@ export const route = createBrowserRouter([
     children: [
       { index: true, element: <Home /> },
       { element: <ShowMovie />, path: 'movie/:id' },
-      { element: <PopularMovie />, path: '/movies/popular' },
-      { element: <TopRatedMovie />, path: '/movies/top-rated' },
-      { element: <UpcomingMovie />, path: '/movies/upcoming' },
+      { element: <PopularMovie />, path: 'movies/popular' },
+      { element: <TopRatedMovie />, path: 'movies/top-rated' },
+      { element: <UpcomingMovie />, path: 'movies/upcoming' },
+      { element: <Watchlist />, path: 'watchlist' },
     ],
   },
 ]);

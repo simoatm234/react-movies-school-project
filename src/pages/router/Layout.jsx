@@ -16,6 +16,7 @@ export default function Layout() {
     AddWatchList,
   } = useMovieActions();
 
+  const state = useSelector((state) => state);
   const isGlobalLoading = useSelector((state) => state.movies.loading);
   const [hasInitialized, setHasInitialized] = useState(false);
 
@@ -34,7 +35,7 @@ export default function Layout() {
 
       if (WatchList) {
         const WatchListJson = JSON.parse(WatchList);
-        AddWatchList({ payload: WatchListJson });
+        AddWatchList( WatchListJson );
       }
 
       setHasInitialized(true);
@@ -49,7 +50,7 @@ export default function Layout() {
     fetchUpcomingMovies,
     AddWatchList,
   ]);
-
+  console.log(state);
   if (!hasInitialized && isGlobalLoading) {
     return <Loading />;
   }

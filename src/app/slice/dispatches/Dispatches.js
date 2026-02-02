@@ -32,9 +32,8 @@ export const useMovieActions = () => {
       fetchMovieVideos: (movieId) => dispatch(fetchMovieVideos(movieId)),
       fetchSearchMovies: ({ page, value }) =>
         dispatch(fetchSearchMovies({ page, value })),
-      AddWatchList: ({ payload }) => dispatch(AddWatchList({ payload })),
-      deleteWatchListItem: ({ payload }) =>
-        dispatch(deleteWatchListItem({ payload })),
+      AddWatchList: (list) => dispatch(AddWatchList(list)),
+      deleteWatchListItem: (movieId) => dispatch(deleteWatchListItem(movieId)),
       deleteAllWacthList: () => dispatch(deleteAllWacthList()),
       selectMovie: (id) => dispatch(selectMovie(id)),
     }),

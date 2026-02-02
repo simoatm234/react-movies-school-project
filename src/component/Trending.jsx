@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { useMovieActions } from '../app/slice/dispatches/Dispatches';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   ChevronLeft,
   ChevronRight,
@@ -14,234 +14,198 @@ import {
 import { useNavigate } from 'react-router-dom';
 
 export default function Trending() {
-  const { trending } = useSelector((state) => state.movies.data);
-  const { fetchTrendingMovies } = useMovieActions();
+  const { trending, watchList } = useSelector((state) => state.movies.data);
+  const { fetchTrendingMovies, AddWatchList, deleteWatchListItem } =
+    useMovieActions();
   const navigate = useNavigate();
 
-  const handleBack = () => {
-    if (trending.page > 1) {
-      fetchTrendingMovies({ time: 'day', page: trending.page - 1 });
+  // Initial Fetch on Mount
+  useEffect(() => {
+    fetchTrendingMovies({ time: 'day', page: 1 });
+  }, []);
+
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= trending.total_pages) {
+      fetchTrendingMovies({ time: 'day', page: newPage });
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
-  const handleNext = () => {
-    if (trending.page < trending.total_pages) {
-      fetchTrendingMovies({ time: 'day', page: trending.page + 1 });
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+  const toggleFavorite = async (e, movie) => {
+    e.stopPropagation();
+    const list = JSON.parse(localStorage.getItem('watchList') || '[]');
+    const isAlreadyIn = list.find((w) => w.id === movie.id);
+
+    if (!isAlreadyIn) {
+      const updated = [...list, movie];
+      localStorage.setItem('watchList', JSON.stringify(updated));
+      await AddWatchList(updated); // Pass array directly
+    } else {
+      const updated = list.filter((w) => w.id !== movie.id);
+      localStorage.setItem('watchList', JSON.stringify(updated));
+      await deleteWatchListItem(movie.id); // Pass ID directly
     }
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return '';
+    if (!dateString) return 'Coming Soon';
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
     });
   };
-  const navigateToMovie = (movieId) => {
-    navigate(`/movie/${movieId}`);
-  };
 
-  // Check if data is loading or empty
-  if (!trending || !trending.data || trending.data.length === 0) {
+  if (!trending?.data || trending.data.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <Flame className="w-16 h-16 text-zinc-400 dark:text-zinc-600 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-zinc-700 dark:text-zinc-300 mb-2">
-            Loading trending movies...
-          </h3>
-          <p className="text-zinc-500 dark:text-zinc-500">
-            Please wait while we fetch the latest trends
-          </p>
+      <div className="min-h-screen flex items-center justify-center bg-zinc-950">
+        <div className="text-center animate-pulse">
+          <Flame className="w-16 h-16 text-red-600 mx-auto mb-4" />
+          <h3 className="text-xl font-bold text-white">Loading Trends...</h3>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-zinc-50 dark:from-zinc-950 dark:to-zinc-900 pt-20">
-      <section className="p-4 sm:p-6 max-w-7xl mx-auto">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8 sm:mb-12"
-        >
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-gradient-to-r from-red-500 to-orange-500 rounded-xl">
-                <Flame className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-white">
-                  Trending Now
-                </h1>
-                <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
-                  Discover what everyone is watching right now
-                </p>
-              </div>
+    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 pt-24 pb-12 transition-colors duration-500">
+      <div className="max-w-7xl mx-auto px-6">
+        {/* Header Section */}
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="px-3 py-1 bg-red-600/10 text-red-600 text-[10px] font-black uppercase tracking-widest rounded-full">
+                Live Updates
+              </span>
             </div>
+            <h1 className="text-5xl font-black text-zinc-900 dark:text-white uppercase italic tracking-tighter">
+              Trending <span className="text-red-600">Now</span>
+            </h1>
+          </div>
 
-            {/* Stats */}
-            <div className="flex items-center gap-4 text-sm">
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 rounded-full">
-                <Star className="w-4 h-4 text-yellow-500" />
-                <span className="font-medium">
-                  Page {trending.page} of {trending.total_pages || 1}
-                </span>
-              </div>
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 rounded-full">
-                <Calendar className="w-4 h-4 text-blue-500" />
-                <span>
-                  {trending.total_results?.toLocaleString() || 0} total
-                </span>
-              </div>
+          <div className="flex gap-4">
+            <div className="px-4 py-2 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-sm">
+              <p className="text-[10px] text-zinc-500 uppercase font-bold">
+                Total Results
+              </p>
+              <p className="font-black dark:text-white">
+                {trending.total_results?.toLocaleString()}
+              </p>
             </div>
           </div>
-        </motion.div>
+        </header>
 
         {/* Movies Grid */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4"
-        >
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
           {trending.data.map((movie, index) => {
-            const imgBase = 'https://image.tmdb.org/t/p/w500';
-            const posterUrl = movie.poster_path
-              ? `${imgBase}${movie.poster_path}`
-              : 'https://via.placeholder.com/500x750?text=No+Poster&bg=1f2937&text=white';
+            const inWatchList = Array.isArray(watchList?.data)
+              ? watchList.data.find((w) => w.id === movie.id)
+              : null;
 
             return (
               <motion.div
                 key={movie.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-                whileHover={{ y: -8, scale: 1.03 }}
-                onClick={() => navigateToMovie(movie.id)}
-                className="group cursor-pointer"
+                transition={{ delay: (index % 12) * 0.05 }}
+                whileHover={{ y: -10 }}
+                onClick={() => navigate(`/movie/${movie.id}`)}
+                className="group relative cursor-pointer"
               >
-                <div className="relative aspect-[2/3] rounded-2xl overflow-hidden shadow-xl dark:shadow-2xl dark:shadow-black/30">
-                  {/* Poster Image */}
+                <div className="relative aspect-[2/3] rounded-3xl overflow-hidden shadow-2xl bg-zinc-200 dark:bg-zinc-900">
                   <img
-                    src={posterUrl}
+                    src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
                     alt={movie.title}
-                    className="w-full h-full object-cover transition-all duration-500 group-hover:scale-110"
-                    loading="lazy"
+                    className="w-full h-full object-cover transition duration-500 group-hover:scale-110"
                   />
 
-                  {/* Gradient Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-                  {/* Rating Badge */}
-                  <div className="absolute top-3 left-3 flex items-center gap-1 px-2 py-1 bg-black/70 backdrop-blur-sm rounded-full">
-                    <Star className="w-3 h-3 text-yellow-400" />
-                    <span className="text-xs font-bold text-white">
-                      {movie.vote_average?.toFixed(1) || 'N/A'}
-                    </span>
+                  {/* Overlay Gradient */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-4 flex flex-col justify-end">
+                    <p className="text-white text-xs line-clamp-3 mb-4 opacity-0 group-hover:opacity-100 transition-delay-300">
+                      {movie.overview}
+                    </p>
+                    <div className="flex justify-between items-center">
+                      <span className="text-[10px] text-zinc-400 font-bold">
+                        {formatDate(movie.release_date)}
+                      </span>
+                      <div className="p-2 bg-white text-black rounded-full">
+                        <Play size={12} fill="black" />
+                      </div>
+                    </div>
                   </div>
 
-                  {/* Favorite Button */}
-                  <button className="absolute top-3 right-3 p-2 bg-black/50 backdrop-blur-sm rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-red-600">
-                    <Heart className="w-4 h-4 text-white" />
-                  </button>
-
-                  {/* Hover Info */}
-                  <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                    <h3 className="text-white font-bold text-sm line-clamp-2 mb-2">
-                      {movie.title}
-                    </h3>
-                    <p className="text-zinc-300 text-xs line-clamp-2 mb-3">
-                      {movie.overview || 'No description available'}
-                    </p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-zinc-400">
-                        {movie.release_date
-                          ? formatDate(movie.release_date)
-                          : 'Coming Soon'}
+                  {/* Actions (Top) */}
+                  <div className="absolute top-3 left-3 right-3 flex justify-between items-start">
+                    <div className="px-2 py-1 bg-black/60 backdrop-blur-md rounded-lg flex items-center gap-1 border border-white/10">
+                      <Star
+                        size={10}
+                        className="text-yellow-400 fill-current"
+                      />
+                      <span className="text-[10px] text-white font-black">
+                        {movie.vote_average?.toFixed(1)}
                       </span>
-                      <button className="p-2 bg-red-600 rounded-full hover:bg-red-700 transition-colors">
-                        <Play className="w-3 h-3 text-white" />
-                      </button>
                     </div>
+                    <button
+                      onClick={(e) => toggleFavorite(e, movie)}
+                      className={`p-2 rounded-xl backdrop-blur-md transition-all ${
+                        inWatchList
+                          ? 'bg-red-600 text-white'
+                          : 'bg-black/60 text-white hover:bg-red-600'
+                      }`}
+                    >
+                      <Heart
+                        size={14}
+                        fill={inWatchList ? 'currentColor' : 'none'}
+                      />
+                    </button>
                   </div>
                 </div>
 
-                {/* Title (Outside Card) */}
-                <div className="mt-3 px-1">
-                  <h3 className="font-semibold text-zinc-900 dark:text-white text-sm truncate group-hover:text-red-500 transition-colors">
+                <div className="mt-4 px-1">
+                  <h3 className="text-sm font-black uppercase italic truncate dark:text-white group-hover:text-red-600 transition-colors">
                     {movie.title}
                   </h3>
-                  <div className="flex items-center justify-between mt-1">
-                    <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                      {movie.release_date?.split('-')[0] || 'N/A'}
-                    </span>
-                    <span className="flex items-center gap-1 text-xs">
-                      <Star className="w-3 h-3 text-yellow-500" />
-                      {movie.vote_average?.toFixed(1) || 'N/A'}
-                    </span>
-                  </div>
+                  <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+                    {movie.media_type || 'Movie'} •{' '}
+                    {movie.release_date?.split('-')[0]}
+                  </p>
                 </div>
               </motion.div>
             );
           })}
-        </motion.div>
+        </div>
 
-        {/* Pagination */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="w-full flex justify-center py-12"
-        >
-          <div className="flex items-center justify-center gap-3">
+        {/* Pagination Footer */}
+        <footer className="mt-20 flex flex-col items-center gap-6">
+          <div className="flex items-center gap-4">
             <button
-              onClick={handleBack}
+              onClick={() => handlePageChange(trending.page - 1)}
               disabled={trending.page <= 1}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-full font-medium text-sm transition-all border border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-40 disabled:cursor-not-allowed hover:scale-105 active:scale-95"
+              className="p-4 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 disabled:opacity-20 hover:scale-110 transition-transform shadow-lg"
             >
-              <ChevronLeft className="w-4 h-4" />
-              Previous
+              <ChevronLeft className="dark:text-white" />
             </button>
 
-            <div className="flex items-center gap-2 mx-4">
-              <span className="px-4 py-2.5 text-sm font-bold rounded-full bg-gradient-to-r from-zinc-100 to-zinc-200 dark:from-zinc-800 dark:to-zinc-900 text-zinc-900 dark:text-zinc-100 border border-zinc-300 dark:border-zinc-700 shadow-sm min-w-[120px] text-center select-none">
-                Page {trending.page}
-                <span className="text-xs font-normal text-zinc-500 dark:text-zinc-400 ml-1">
-                  / {trending.total_pages || 1}
-                </span>
-              </span>
+            <div className="px-8 py-4 bg-zinc-900 dark:bg-white rounded-3xl shadow-2xl text-center min-w-[140px]">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500 dark:text-zinc-400">
+                Page
+              </p>
+              <p className="text-xl font-black italic text-white dark:text-black">
+                {trending.page} <span className="text-zinc-600">/</span>{' '}
+                {trending.total_pages}
+              </p>
             </div>
 
             <button
-              onClick={handleNext}
+              onClick={() => handlePageChange(trending.page + 1)}
               disabled={trending.page >= trending.total_pages}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-full font-medium text-sm transition-all bg-gradient-to-r from-red-600 to-orange-500 text-white hover:from-red-700 hover:to-orange-600 shadow-lg shadow-red-600/20 hover:scale-105 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="p-4 rounded-2xl bg-red-600 text-white hover:scale-110 transition-transform shadow-lg shadow-red-600/30"
             >
-              Next
-              <ChevronRight className="w-4 h-4" />
+              <ChevronRight />
             </button>
           </div>
-        </motion.div>
-
-        {/* Empty State */}
-        {trending.data.length === 0 && !trending.loading && (
-          <div className="text-center py-20">
-            <Flame className="w-16 h-16 text-zinc-300 dark:text-zinc-700 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-zinc-600 dark:text-zinc-400 mb-2">
-              No trending movies found
-            </h3>
-            <p className="text-zinc-500 dark:text-zinc-500 max-w-md mx-auto">
-              There are no trending movies at the moment. Check back later for
-              updates!
-            </p>
-          </div>
-        )}
-      </section>
+        </footer>
+      </div>
     </div>
   );
 }
