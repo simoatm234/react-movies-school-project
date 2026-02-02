@@ -11,13 +11,12 @@ import {
   Play,
   Heart,
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export default function Trending() {
   const { trending } = useSelector((state) => state.movies.data);
   const { fetchTrendingMovies } = useMovieActions();
-
-  // Since data is already loaded in Layout, we don't need useEffect
-  // Just use the data from Redux store
+  const navigate = useNavigate();
 
   const handleBack = () => {
     if (trending.page > 1) {
@@ -40,6 +39,9 @@ export default function Trending() {
       day: 'numeric',
       year: 'numeric',
     });
+  };
+  const navigateToMovie = (movieId) => {
+    navigate(`/movie/${movieId}`);
   };
 
   // Check if data is loading or empty
@@ -120,6 +122,7 @@ export default function Trending() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
                 whileHover={{ y: -8, scale: 1.03 }}
+                onClick={() => navigateToMovie(movie.id)}
                 className="group cursor-pointer"
               >
                 <div className="relative aspect-[2/3] rounded-2xl overflow-hidden shadow-xl dark:shadow-2xl dark:shadow-black/30">

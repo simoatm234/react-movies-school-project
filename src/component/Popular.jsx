@@ -109,6 +109,7 @@ export default function Popular() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
                 whileHover={{ y: -8, scale: 1.03 }}
+                onClick={() => navigateToMovie(movie.id)}
                 className="group cursor-pointer"
               >
                 <div className="relative aspect-[2/3] rounded-2xl overflow-hidden shadow-xl dark:shadow-2xl dark:shadow-black/30">

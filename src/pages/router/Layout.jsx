@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import NavBar from '../../component/NavBar';
 import Footer from '../../component/Footer';
@@ -13,35 +13,56 @@ export default function Layout() {
     fetchTopRatedMovies,
     fetchTrendingMovies,
     fetchUpcomingMovies,
+    AddWatchList,
   } = useMovieActions();
 
-  const state = useSelector((state) => state.movies);
+  // We only track if the app has finished its very first boot-up
+  const isGlobalLoading = useSelector((state) => state.movies.loading);
+  const [hasInitialized, setHasInitialized] = useState(false);
 
   useEffect(() => {
-    fetchAllMovies(1);
-    fetchPopularMovies(1);
-    fetchTopRatedMovies(1);
-    fetchTrendingMovies({ time: 'day', page: 1 });
-    fetchUpcomingMovies(1);
+    const initApp = async () => {
+      const WatchList = localStorage.getItem('watchList');
+
+      // Fetch all initial data in parallel
+      await Promise.all([
+        fetchAllMovies(1),
+        fetchPopularMovies(1),
+        fetchTopRatedMovies(1),
+        fetchTrendingMovies({ time: 'day', page: 1 }),
+        fetchUpcomingMovies(1),
+      ]);
+
+      if (WatchList) {
+        const WatchListJson = JSON.parse(WatchList);
+        AddWatchList({ payload: WatchListJson });
+      }
+
+      setHasInitialized(true);
+    };
+
+    initApp();
   }, [
     fetchAllMovies,
     fetchPopularMovies,
     fetchTopRatedMovies,
     fetchTrendingMovies,
     fetchUpcomingMovies,
+    AddWatchList,
   ]);
 
-  console.log(state);
+  if (!hasInitialized && isGlobalLoading) {
+    return <Loading />;
+  }
+
   return (
-    <div
-      className="min-h-screen flex flex-col transition-colors duration-300 
-                    bg-white text-zinc-900 
-                    dark:bg-zinc-950 dark:text-zinc-50"
-    >
+    <div className="min-h-screen flex flex-col transition-colors duration-300 bg-white text-zinc-900 dark:bg-zinc-950 dark:text-zinc-50">
       <NavBar />
+
       <main className="flex-1 pt-20">
         <Outlet />
       </main>
+
       <Footer />
     </div>
   );

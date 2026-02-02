@@ -23,6 +23,18 @@ export const fetchAllMovies = createAsyncThunk(
   async (page, { rejectWithValue }) =>
     handleThunkRequest(() => api.fetchAllMovies(page), rejectWithValue)
 );
+//movie
+export const selectMovie = createAsyncThunk(
+  'movies/selectMovie',
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await api.selectMovie(id);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || 'Error fetching movie');
+    }
+  }
+);
 //popular
 export const fetchPopularMovies = createAsyncThunk(
   'movies/fetchPopularMovies',
@@ -59,7 +71,7 @@ export const fetchUpcomingMovies = createAsyncThunk(
   async (page, { rejectWithValue }) =>
     handleThunkRequest(() => api.fetchUpcomingMovies(page), rejectWithValue)
 );
-// upcoming
+// search
 export const fetchSearchMovies = createAsyncThunk(
   'movies/fetchSearchMovies',
   async ({ page, value }, { rejectWithValue }) =>
@@ -73,8 +85,9 @@ export const fetchMovieVideos = createAsyncThunk(
   'movies/fetchMovieVideos',
   async (movieId, { rejectWithValue }) => {
     try {
-      const response = await api.getMovieVideos(movieId);
-      return { movieId, videos: response.results };
+      const videos = await api.GetVidioMovies(movieId);
+      console.log('Processed videos:', videos);
+      return videos; 
     } catch (error) {
       return rejectWithValue(error.response?.data);
     }

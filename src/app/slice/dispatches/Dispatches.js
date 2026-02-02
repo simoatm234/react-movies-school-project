@@ -7,8 +7,14 @@ import {
   fetchTopRatedMovies,
   fetchTrendingMovies,
   fetchUpcomingMovies,
+  selectMovie,
 } from '../AsyncThunks/MoviesThunk';
 import { useMemo } from 'react';
+import {
+  AddWatchList,
+  deleteAllWacthList,
+  deleteWatchListItem,
+} from '../MovisSlice';
 export const useMovieActions = () => {
   const dispatch = useDispatch();
 
@@ -23,6 +29,11 @@ export const useMovieActions = () => {
       fetchMovieVideos: (movieId) => dispatch(fetchMovieVideos(movieId)),
       fetchSearchMovies: ({ page, value }) =>
         dispatch(fetchSearchMovies({ page, value })),
+      AddWatchList: ({ payload }) => dispatch(AddWatchList({ payload })),
+      deleteWatchListItem: ({ payload }) =>
+        dispatch(deleteWatchListItem({ payload })),
+      deleteAllWacthList: () => dispatch(deleteAllWacthList()),
+      selectMovie: (id) => dispatch(selectMovie(id)),
     }),
     [dispatch]
   );

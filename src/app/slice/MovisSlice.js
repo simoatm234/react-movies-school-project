@@ -7,19 +7,19 @@ import {
   fetchTopRatedMovies,
   fetchTrendingMovies,
   fetchUpcomingMovies,
+  selectMovie,
 } from './AsyncThunks/MoviesThunk';
 
 const initialState = {
   data: {
     all: { page: null, data: [], total_pages: null, total_results: null },
+    movie: { data: null, videos: null },
     popular: { page: null, data: [], total_pages: null, total_results: null },
     topRated: { page: null, data: [], total_pages: null, total_results: null },
     trending: { page: null, data: [], total_pages: null, total_results: null },
     upcoming: { page: null, data: [], total_pages: null, total_results: null },
     search: { page: null, data: [], total_pages: null, total_results: null },
-  },
-  videos: {
-    byMovieId: {},
+    watchList: { data: [] },
   },
   loading: false,
   error: null,
@@ -28,7 +28,15 @@ const initialState = {
 const MovieSlice = createSlice({
   name: 'movies',
   initialState,
-  reducers: {},
+  reducers: {
+    AddWatchList: (state, action) =>
+      (state.data.watchList.data = action.payload),
+    deleteWatchListItem: (state, action) =>
+      (state.data.watchList.data = state.data.watchList.data.filter(
+        (d) => d.id !== action.payload
+      )),
+    deleteAllWacthList: (state) => (state.data.watchList.data = []),
+  },
   extraReducers: (builder) => {
     builder
       //ALL
@@ -47,6 +55,20 @@ const MovieSlice = createSlice({
         state.loading = false;
         state.error = action.payload || action.error.message;
       })
+      //movie
+      .addCase(selectMovie.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(selectMovie.fulfilled, (state, action) => {
+        state.loading = false;
+        state.data.movie.data = action.payload;
+      })
+      .addCase(selectMovie.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || action.error.message;
+      })
+
       //  POPULAR
 
       .addCase(fetchPopularMovies.pending, (state) => {
@@ -133,14 +155,14 @@ const MovieSlice = createSlice({
         state.loading = false;
         state.error = action.payload || action.error.message;
       })
-      // vidios
+      // // vidios
       .addCase(fetchMovieVideos.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(fetchMovieVideos.fulfilled, (state, action) => {
         state.loading = false;
-        state.videos.byMovieId[action.meta.arg] = action.payload;
+        state.data.movie.videos = action.payload;
       })
       .addCase(fetchMovieVideos.rejected, (state, action) => {
         state.loading = false;
@@ -149,3 +171,5 @@ const MovieSlice = createSlice({
   },
 });
 export default MovieSlice;
+export const { AddWatchList, deleteWatchListItem, deleteAllWacthList } =
+  MovieSlice.actions;

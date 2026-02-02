@@ -5,6 +5,11 @@ export const api = {
     const response = await customAxios.get(`/discover/movie?page=${page}`);
     return response.data;
   },
+  selectMovie: async (id) => {
+    const response = await customAxios.get(`/movie/${id}`);
+    console.log('movie :', response.data);
+    return response.data;
+  },
   fetchPopularMovies: async (page) => {
     const response = await customAxios.get(`/movie/popular?page=${page}`);
     return response.data;
@@ -40,6 +45,7 @@ export const api = {
 
   GetVidioMovies: async (movieId) => {
     const response = await customAxios.get(`/movie/${movieId}/videos`);
-    return response.data;
+    console.log('API Response:', response.data);
+    return response.data.results;
   },
 };
