@@ -12,6 +12,7 @@ import {
   Plus,
   Info,
   DollarSign,
+  Check,
   Globe,
   Clapperboard,
 } from 'lucide-react';
@@ -24,7 +25,7 @@ const PLACEHOLDER_IMAGE = 'https://via.placeholder.com/1920x1080?text=No+Image';
 export default function ShowMovie() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { selectMovie, fetchMovieVideos } = useMovieActions();
+  const { selectMovie, fetchMovieVideos, AddWatchList } = useMovieActions();
 
   // ui state
   const [showTrailer, setShowTrailer] = useState(false);
@@ -32,8 +33,16 @@ export default function ShowMovie() {
 
   // redux state
   const movie = useSelector((state) => state.movies.data.movie.data);
+  const watchlist = useSelector(
+    (state) => state.movies?.data?.watchList?.data || []
+  );
+
   const videos = useSelector((state) => state.movies.data.movie.videos);
   const loading = useSelector((state) => state.movies.loading);
+  // check if movie in watch list
+  const inWatchList = useMemo(() => {
+    return Boolean(watchlist?.find((item) => String(item.id) === String(id)));
+  }, [watchlist, id]);
 
   // data initialization
   useEffect(() => {
@@ -65,6 +74,14 @@ export default function ShowMovie() {
       setSelectedVideo(video);
       setShowTrailer(true);
     }
+  };
+  const hndelAddWatchList = async () => {
+    const stored = localStorage.getItem('watchList');
+    const currentList = stored ? JSON.parse(stored) : [];
+
+    const updatedList = [...currentList, movie];
+    localStorage.setItem('watchList', JSON.stringify(updatedList));
+    await AddWatchList(updatedList);
   };
 
   // formatting
@@ -166,8 +183,17 @@ export default function ShowMovie() {
                 {trailer ? 'WATCH TRAILER' : 'NO TRAILER AVAILABLE'}
               </button>
 
-              <button className="flex items-center gap-3 px-10 py-4 bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300 dark:hover:bg-zinc-700 rounded-xl font-black transition-all">
-                <Plus size={20} /> WATCHLIST
+              <button
+                className={`flex items-center gap-3 px-10 py-4 rounded-xl font-black transition-all ${
+                  inWatchList
+                    ? 'bg-green-600 text-white cursor-default'
+                    : 'bg-zinc-200 dark:bg-zinc-800 hover:bg-zinc-300'
+                }`}
+                disabled={inWatchList}
+                onClick={hndelAddWatchList}
+              >
+                {inWatchList ? <Check size={20} /> : <Plus size={20} />}
+                {inWatchList ? 'IN WATCHLIST' : 'WATCHLIST'}
               </button>
             </div>
           </motion.div>

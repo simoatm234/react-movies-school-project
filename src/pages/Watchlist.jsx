@@ -10,18 +10,15 @@ export default function Watchlist() {
   const { deleteWatchListItem } = useMovieActions();
   const navigate = useNavigate();
 
-  // 1. Extract the array safely
   const movies = Array.isArray(watchList?.data) ? watchList.data : [];
 
   const handleRemove = (e, id) => {
-    e.stopPropagation(); // Prevents navigating to details when clicking delete
+    e.stopPropagation();
     const currentStorage = JSON.parse(
       localStorage.getItem('watchList') || '[]'
     );
     const updated = currentStorage.filter((m) => m.id !== id);
     localStorage.setItem('watchList', JSON.stringify(updated));
-
-    // Ensure this passes just the ID as we fixed in the hook
     deleteWatchListItem(id);
   };
 
