@@ -105,7 +105,7 @@ export default function ShowMovie() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 transition-colors duration-500 overflow-x-hidden">
-      {/* 1. hero section */}
+      {/*  hero section */}
       <header className="relative h-[75vh] md:h-[85vh] w-full">
         <div className="absolute inset-0 z-0">
           <motion.img

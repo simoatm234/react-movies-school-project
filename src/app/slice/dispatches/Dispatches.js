@@ -6,6 +6,7 @@ import {
   fetchSearchMovies,
   fetchTopRatedMovies,
   fetchTrendingMovies,
+  fetchTvPopulare,
   fetchUpcomingMovies,
   selectMovie,
 } from '../AsyncThunks/MoviesThunk';
@@ -36,6 +37,8 @@ export const useMovieActions = () => {
       deleteWatchListItem: (movieId) => dispatch(deleteWatchListItem(movieId)),
       deleteAllWacthList: () => dispatch(deleteAllWacthList()),
       selectMovie: (id) => dispatch(selectMovie(id)),
+      // tv
+      fetchTvPopulare: (page) => dispatch(fetchTvPopulare(page)),
     }),
     [dispatch]
   );

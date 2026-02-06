@@ -86,6 +86,8 @@ export const api = {
   },
 
   // tv
-
-  
+  tvTrending: async (page = 1) => {
+    const response = await customAxios.get('/trending/tv/week');
+    return response.data.results;
+  },
 };

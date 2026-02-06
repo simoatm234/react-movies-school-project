@@ -6,6 +6,7 @@ import {
   fetchSearchMovies,
   fetchTopRatedMovies,
   fetchTrendingMovies,
+  fetchTvPopulare,
   fetchUpcomingMovies,
   selectMovie,
 } from './AsyncThunks/MoviesThunk';
@@ -20,6 +21,21 @@ const initialState = {
     upcoming: { page: null, data: [], total_pages: null, total_results: null },
     search: { page: null, data: [], total_pages: null, total_results: null },
     watchList: { data: [] },
+    tvWatch: {
+      popular: { page: null, data: [], total_pages: null, total_results: null },
+      trending: {
+        page: null,
+        data: [],
+        total_pages: null,
+        total_results: null,
+      },
+      upcoming: {
+        page: null,
+        data: [],
+        total_pages: null,
+        total_results: null,
+      },
+    },
   },
   loading: false,
   error: null,
@@ -169,6 +185,22 @@ const MovieSlice = createSlice({
         state.data.movie.videos = action.payload;
       })
       .addCase(fetchMovieVideos.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || action.error.message;
+      })
+      //tv popular
+      .addCase(fetchTvPopulare.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchTvPopulare.fulfilled, (state, action) => {
+        state.loading = false;
+        state.data.tvWatch.popular.data = action.payload.data;
+        state.data.tvWatch.popular.page = action.payload.page;
+        state.data.tvWatch.popular.total_pages = action.payload.total_pages;
+        state.data.tvWatch.popular.total_results = action.payload.total_results;
+      })
+      .addCase(fetchTvPopulare.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || action.error.message;
       });

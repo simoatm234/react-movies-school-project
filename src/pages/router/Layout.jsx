@@ -14,6 +14,7 @@ export default function Layout() {
     fetchTrendingMovies,
     fetchUpcomingMovies,
     AddWatchList,
+    fetchTvPopulare,
   } = useMovieActions();
 
   const state = useSelector((state) => state);
@@ -31,11 +32,12 @@ export default function Layout() {
         fetchTopRatedMovies({ page: 1 }),
         fetchTrendingMovies({ time: 'day', page: 1 }),
         fetchUpcomingMovies({ page: 1 }),
+        fetchTvPopulare({ page: 1 }),
       ]);
 
       if (WatchList) {
         const WatchListJson = JSON.parse(WatchList);
-        AddWatchList( WatchListJson );
+        AddWatchList(WatchListJson);
       }
 
       setHasInitialized(true);
@@ -49,6 +51,7 @@ export default function Layout() {
     fetchTrendingMovies,
     fetchUpcomingMovies,
     AddWatchList,
+    fetchTvPopulare,
   ]);
   console.log(state);
   if (!hasInitialized && isGlobalLoading) {

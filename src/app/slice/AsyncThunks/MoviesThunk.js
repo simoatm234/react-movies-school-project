@@ -102,3 +102,9 @@ export const fetchMovieVideos = createAsyncThunk(
     }
   }
 );
+// tv
+export const fetchTvPopulare = createAsyncThunk(
+  'tv/fetchTvPopulare',
+  async (page, { rejectWithValue }) =>
+    handleThunkRequest(() => api.fetchSearchMovies(page), rejectWithValue)
+);
